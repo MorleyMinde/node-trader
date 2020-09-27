@@ -2,7 +2,7 @@ version: '3.2'
 
 services:
   ussd-tr:
-    image: node:14.11-alpine3.12
+    image: python3.8-nodejs14-alpine
     working_dir: /home/app
     environment:
       - NODE_ENV=production
