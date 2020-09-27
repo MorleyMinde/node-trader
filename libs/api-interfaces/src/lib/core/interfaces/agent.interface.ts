@@ -75,7 +75,7 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
   }
   async initiate(){
     try{
-      this._network = await tf.loadLayersModel('file:///home/vincentminde/projects/personal/development/typescript/my/models/my-model/model.json');
+      this._network = await tf.loadLayersModel('file:///home/app/models/my-model/model.json');
       this._network.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
       this._prepareStates();
       console.log('Starting Network');
@@ -151,7 +151,7 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
     return results.softmax();
   }
   async saveModel(): Promise<void> {
-    await this._network.save('file:///home/vincentminde/projects/personal/development/typescript/my/models/my-model');
+    await this._network.save('file:///home/app/models/my-model');
   }
   abstract getModel(shape: Shape): Sequential;
 }
