@@ -1,32 +1,32 @@
 import {
     ticksToTickChart,
   } from 'candlestick-convert';
-import { TradeObservation } from '../interfaces/trading.interface';
+import { MarketTickState } from '../interfaces/trading.interface';
 
-export const convertObservationToCandleArray = (observation: TradeObservation):Array<number>=>{
+export const convertObservationToCandleArray = (tickData: MarketTickState):Array<number>=>{
 
     let tradeData = [];
     try{
       tradeData.push({
-        price: parseFloat(observation.bids[0].price),
-        quantity: observation.bids[0].liquidity,
-        time: new Date(observation.time).getTime(),
+        price: parseFloat(tickData.bids[0].price),
+        quantity: tickData.bids[0].liquidity,
+        time: new Date(tickData.time).getTime(),
       });
       tradeData.push({
-        price: parseFloat(observation.asks[0].price),
-        quantity: observation.asks[0].liquidity,
-        time: new Date(observation.time).getTime(),
+        price: parseFloat(tickData.asks[0].price),
+        quantity: tickData.asks[0].liquidity,
+        time: new Date(tickData.time).getTime(),
       });
     }catch(e){
-      console.log('observation:',observation);
       throw e;
     }
     let candles = ticksToTickChart(tradeData, 2);
     return candles.map((candle) => [
-        candle.time,
+        //candle.time,
         candle.open,
         candle.high,
         candle.low,
         candle.close,
+        //candle.volume,
       ])[0];
 }

@@ -1,11 +1,11 @@
 import * as tf from '@tensorflow/tfjs';
-import { Tensor, Sequential } from '@tensorflow/tfjs';
+import { Tensor, Sequential, Shape } from '@tensorflow/tfjs';
 import { IMemory } from './memory.interface';
 
 export interface IModel {
   numStates: number;
   numActions: number;
-  getModel():Sequential;
+  getModel(shape:Shape):Sequential;
   train(input: tf.Tensor, output: tf.Tensor);
   predict(input: tf.Tensor): tf.Tensor;
 }
@@ -27,7 +27,7 @@ interface IAgent<State, Action> {
 }
 
 export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
-  discountRate: 0;
+  discountRate: 0.9;
   batchSize: 300;
   episodesToTrain: 1000;
   model: IModel;
@@ -52,10 +52,10 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
   ): Promise<void>{
     this.memory.addSample(
       {
-        state: this.convertStateToTensor(state),
+        state: state,
         action: action,
         reward: reward,
-        nextState: this.convertStateToTensor(nextState)
+        nextState: nextState
       }
     );
     if (this.memory.isFull()) {
@@ -81,10 +81,11 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
     // Update the states rewards with the discounted next states rewards
     batch.forEach(({state, action, reward, nextState}, index) => {
       const currentQ = qsa[index];
-      currentQ[action] = nextState
+      //currentQ[action] = this.convertStateToTensor(nextState)
+      currentQ[action] = this.convertStateToTensor(nextState)
         ? reward + this.discountRate * qsad[index].max().dataSync()
         : reward;
-      x.push(state.dataSync());
+      x.push(this.convertStateToTensor(state).dataSync());
       y.push(currentQ.dataSync());
     });
 

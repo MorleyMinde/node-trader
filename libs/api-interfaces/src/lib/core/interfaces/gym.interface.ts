@@ -4,8 +4,8 @@ interface ActionSpace{
 interface Reward {
 
 }
-interface StepResult<Obs>{
-    observation: Obs;
+interface StepResult<State>{
+    state: State;
     reward: number;
     done: boolean;
     info: string;
@@ -14,6 +14,5 @@ interface IGym<State,Action> {
     actionSpace: ActionSpace;
     render(): Promise<void>;
     reset(): Promise<State>;
-    state(): Promise<State>;
     step(action:Action): Promise<StepResult<State>>;
 }

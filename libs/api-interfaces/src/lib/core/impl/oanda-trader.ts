@@ -1,16 +1,19 @@
 import * as fx from 'simple-fxtrade';
-import { TradeObservation, Action, Granularity, Direction } from '../interfaces/trading.interface';
+import {  Action, Granularity, Direction, OAndaMarketState, MarketTickState } from '../interfaces/trading.interface';
+
+
 function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 }
-export class OAndaTrader implements IGym<TradeObservation, Action> {
+export class OAndaTrader implements IGym<OAndaMarketState, Action> {
   actionSpace: ActionSpace;
 
   //private _data: Promise<StepResult<TradeObservation>>;
-  private _data: StepResult<TradeObservation>;
-  private _previousData: StepResult<TradeObservation>;
+  private _data: MarketTickState;
+  //private _previousData: MarketTickState;
+  private _previousState: OAndaMarketState;
   private _currentOrder: any;
   private _currentAction: Action;
   constructor(private granularity:Granularity) {
@@ -19,16 +22,13 @@ export class OAndaTrader implements IGym<TradeObservation, Action> {
         '32952207879e2abea06399919554fb0b-e7474399c01d55c098ecfdfda907bd9e',
     });
   }
-  async state(): Promise<TradeObservation> {
-    return (await this._data).observation;
-  }
   render(): Promise<void> {
     throw new Error('Method not implemented.');
   }
-  async reset(): Promise<TradeObservation> {
+  async reset(): Promise<OAndaMarketState> {
     await this.initiate();
     await this.removeAllTrades();
-    return (await this._data).observation;
+    return this.getEntireState();
   }
   sameAsPreviousAction(action: Action) {
     if (!this._currentAction || !action) {
@@ -37,20 +37,19 @@ export class OAndaTrader implements IGym<TradeObservation, Action> {
     return this._currentAction.side == action.side;
   }
 
-  async step(action: Action): Promise<StepResult<TradeObservation>> {
+  async step(action: Action): Promise<StepResult<OAndaMarketState>> {
     let currentData = await this._data;
-    if (this._previousData) {
-      let currentTime = new Date(currentData.observation.time).getTime();
+    if (this._previousState) {
+      let currentTime = new Date(currentData.time).getTime();
       let previousTime = new Date(
-        this._previousData.observation.time
+        this._previousState.market.time
       ).getTime();
       while (currentTime - previousTime < this.granularity) {
         await sleep(500);
         currentData = await this._data;
-        currentTime = new Date(currentData.observation.time).getTime();
+        currentTime = new Date(currentData.time).getTime();
       }
     }
-    this._previousData = currentData;
     if (!this._currentOrder) {
       await this.removeAllTrades();
     }
@@ -81,10 +80,22 @@ export class OAndaTrader implements IGym<TradeObservation, Action> {
         this.removeAllTrades();
       }
     }
-    const { account } = await fx.summary();
-    //console.table(account);
     this._currentAction = action;
-    return this._data;
+    let currentState = await this.getEntireState();
+    let step = {
+      state:currentState,
+      reward: this.calculateReward(currentState, this._previousState),
+      done: !currentState.market.tradeable,
+      info: 'Awesome'
+    }
+    this._previousState = currentState;
+    return step;
+  }
+  calculateReward(currentSate:OAndaMarketState, previousState:OAndaMarketState):number{
+    if(!previousState){
+      return 0;
+    }
+    return parseFloat(currentSate.account.withdrawalLimit) - parseFloat(previousState.account.withdrawalLimit);
   }
   async removeAllTrades() {
     const { trades } = await fx.trades({ count: 10, instrument: 'EUR_USD' });
@@ -92,7 +103,7 @@ export class OAndaTrader implements IGym<TradeObservation, Action> {
       await fx.trades.close({ id: trade.id });
     }
   }
-  async initiate(): Promise<StepResult<TradeObservation>> {
+  async initiate(){
     const {
       accounts: [{ id }],
     } = await fx.accounts();
@@ -100,28 +111,17 @@ export class OAndaTrader implements IGym<TradeObservation, Action> {
     const stream = await fx.pricing.stream({ instruments: 'EUR_USD' });
 
     // Handle some data
-    stream.on('data', (data) => {
-
+    stream.on('data', (data:MarketTickState) => {
       if (data.type == 'PRICE') {
-        this._data = {
-          observation: data,
-          reward: 0,
-          done: false,
-          info: 'Normal',
-        };
+        this._data = data;
       }
     });
-    /*this._data = new Promise<StepResult<TradeObservation>>((resolve) => {
-      stream.on('data', (data) => {
-        let results:StepResult<TradeObservation> = {
-            observation: data,
-            reward: 0,
-            done: false,
-            info: 'Normal'
-        }
-        resolve(results);
-      });
-    });*/
-    return this._data;
+  }
+  async getEntireState():Promise<OAndaMarketState>{
+    const { account } = await fx.summary();
+    return {
+      market: this._data,
+      account
+    };
   }
 }
