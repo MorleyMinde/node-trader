@@ -36,6 +36,7 @@ export class Orchestrator {
         this.logger.debug('Called when the current second is 45');
         this.replaying = true;
         await this.agent.replay();
+        await this.agent.saveModel();
         this.replaying = false;
     }
   }

@@ -6,8 +6,7 @@ import {
   Shape,
   Sequential,
   layers,
-  tensor,
-  sequential,
+  tensor
 } from '@tensorflow/tfjs';
 import { convertObservationToCandleArray } from './trading-conversion';
 import { multinomial, sigmoid, div, sum } from '@tensorflow/tfjs-core';
@@ -61,9 +60,27 @@ abstract class ModelImpl implements IModel {
   }
 }
 
-class BasicModel extends ModelImpl {
-  numActions: number = 4;
-  getModel(shape:Shape):Sequential{
+export class AondaBasicAgent extends AIAgent<OAndaMarketState, Action> {
+  batchSize: 300;
+  constructor(memory:IMemory<OAndaMarketState, Action>) {
+    super(memory);
+  }
+
+  convertTensorToAction(tensor:Tensor):Action{
+    const sig = tensor.sigmoid();
+    
+    const probs:any = div(sig, sum(sig));
+    let action = actions[multinomial(probs, 1).dataSync()[0]];
+    if(action){
+      return action;
+    }else{
+      throw Error("Action undefined");
+    }
+  }
+  convertStateToTensor(state: OAndaMarketState):Tensor{
+    return tensor(convertMarketStateToArray(state));
+  }
+  async getModel(shape: Shape): Sequential{
     let network = new Sequential();
     network.add(
       layers.dense({
@@ -85,34 +102,10 @@ class BasicModel extends ModelImpl {
         activation: 'relu',
       })
     );
-    network.add(layers.dense({ units: this.numActions }));
+    network.add(layers.dense({ units: 4 }));
 
     network.summary();
     network.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
     return network;
-  }
-}
-export class AondaBasicAgent extends AIAgent<OAndaMarketState, Action> {
-  batchSize: 300;
-  constructor(memory:IMemory<OAndaMarketState, Action>) {
-    super(memory);
-  }
-
-  convertTensorToAction(tensor:Tensor):Action{
-    const sig = tensor.sigmoid();
-    
-    const probs:any = div(sig, sum(sig));
-    let action = actions[multinomial(probs, 1).dataSync()[0]];
-    if(action){
-      return action;
-    }else{
-      throw Error("Action undefined");
-    }
-  }
-  convertStateToTensor(state: OAndaMarketState):Tensor{
-    return tensor(convertMarketStateToArray(state));
-  }
-  getModel(): IModel{
-    return new BasicModel();
   }
 }

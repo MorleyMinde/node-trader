@@ -1,0 +1,27 @@
+version: '3.2'
+
+services:
+  ussd-tr:
+    image: node:14.11-alpine3.12
+    working_dir: /home/app
+    environment:
+      - NODE_ENV=production
+    command: npx ng serve api
+    restart: always
+    environment:
+        - PORT=3000
+    volumes:
+      - type: bind
+        source: ./
+        target: /home/app/
+  database:
+    image: postgres:10.12
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ussd-tr-db-data:/var/lib/postgresql/data
+volumes:
+  ussd-tr-db-data:
+    driver: local

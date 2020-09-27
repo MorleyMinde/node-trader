@@ -1,11 +1,12 @@
 import * as tf from '@tensorflow/tfjs';
 import { Tensor, Sequential, Shape } from '@tensorflow/tfjs';
 import { IMemory } from './memory.interface';
+import { Rank } from '@tensorflow/tfjs-core';
 
 export interface IModel {
   numStates: number;
   numActions: number;
-  getModel(shape:Shape):Sequential;
+  getModel(shape: Shape): Sequential;
   train(input: tf.Tensor, output: tf.Tensor);
   predict(input: tf.Tensor): tf.Tensor;
 }
@@ -23,24 +24,29 @@ interface IAgent<State, Action> {
     action: Action,
     reward: number,
     nextState: State
-  ): Promise<void>
+  ): Promise<void>;
 }
 
 export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
   discountRate: 0.9;
   batchSize: 300;
   episodesToTrain: 1000;
-  model: IModel;
-  constructor(
-    private memory: IMemory<State,Action>
-  ) {
-    this.model = this.getModel();
-  }
+  _numStates: number;
+  _numActions: number;
+  //model: IModel;
+  _network: Sequential;
+  constructor(private memory: IMemory<State, Action>) {}
 
   abstract convertTensorToAction(tensor: Tensor): Action;
   abstract convertStateToTensor(state: State): Tensor;
   async act(state: State): Promise<Action> {
-    let actionTensor = this.model.predict(this.convertStateToTensor(state));
+    if (!this._network) {
+      this._network = await this.getModel(
+        this.convertStateToTensor(state).shape
+      );
+      this._prepareStates();
+    }
+    let actionTensor = this.predict(this.convertStateToTensor(state));
     let action = this.convertTensorToAction(actionTensor);
     return action;
   }
@@ -49,37 +55,53 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
     action: Action,
     reward: number,
     nextState: State
-  ): Promise<void>{
-    this.memory.addSample(
-      {
-        state: state,
-        action: action,
-        reward: reward,
-        nextState: nextState
-      }
-    );
+  ): Promise<void> {
+    this.memory.addSample({
+      state: state,
+      action: action,
+      reward: reward,
+      nextState: nextState,
+    });
     if (this.memory.isFull()) {
       this.replay();
     }
   }
+  _prepareStates() {
+    const input: any = this._network.layers[0].input;
+    this._numStates = input.shape[1];
+    const output: any = this._network.layers[this._network.layers.length - 1]
+      .output;
+    this._numActions = output.shape[1];
+  }
   async replay() {
     const batch = await this.memory.sample(this.batchSize);
+    if (!this._network) {
+      let state = batch[0].state;
+      this._network = await this.getModel(
+        this.convertStateToTensor(state).shape
+      );
+      this._prepareStates();
+    }
     console.log('Started Training');
     // Sample from memory
-    const states = batch.map(({state}) => state);
-    const nextStates = batch.map(({nextState}) =>
-      nextState ? this.convertStateToTensor(nextState) : tf.zeros([this.model.numStates])
+    const states = batch.map(({ state }) => state);
+    const nextStates = batch.map(({ nextState }) =>
+      nextState
+        ? this.convertStateToTensor(nextState)
+        : tf.zeros([this._numStates])
     );
     // Predict the values of each action at each state
-    const qsa = states.map((state) => this.model.predict(this.convertStateToTensor(state)));
+    const qsa = states.map((state) =>
+      this.predict(this.convertStateToTensor(state))
+    );
     // Predict the values of each action at each next state
-    const qsad = nextStates.map((nextState) => this.model.predict(nextState));
+    const qsad = nextStates.map((nextState) => this.predict(nextState));
 
     let x = new Array();
     let y = new Array();
 
     // Update the states rewards with the discounted next states rewards
-    batch.forEach(({state, action, reward, nextState}, index) => {
+    batch.forEach(({ state, action, reward, nextState }, index) => {
       const currentQ = qsa[index];
       //currentQ[action] = this.convertStateToTensor(nextState)
       currentQ[action] = this.convertStateToTensor(nextState)
@@ -94,9 +116,9 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
     qsad.forEach((state) => state.dispose());
 
     // Learn the Q(s, a) values given associated discounted rewards
-    await this.model.train(
-      tf.tensor2d(x, [x.length, this.model.numStates]),
-      tf.tensor2d(y, [y.length, this.model.numActions])
+    await this.train(
+      tf.tensor2d(x, [x.length, this._numStates]),
+      tf.tensor2d(y, [y.length, this._numActions])
     );
 
     x = [];
@@ -104,5 +126,22 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
     console.log('Finished Replaying');
   }
 
-  abstract getModel(): IModel;
+  async train(xBatch: Tensor<Rank>, yBatch: Tensor<Rank>) {
+    await this._network.fit(xBatch, yBatch);
+  }
+  predict(stateTensor: Tensor): Tensor {
+    if (!this._network) {
+      this._network = this.getModel(stateTensor.shape);
+      this._prepareStates();
+    }
+    const input: any = this._network.layers[0].input;
+    let results: any = this._network.predict(
+      stateTensor.reshape(input.shape.map((s) => (s ? s : 1)))
+    );
+    return results.softmax();
+  }
+  async saveModel(): Promise<void> {
+    await this._network.save('file:///home/vincentminde/projects/personal/development/typescript/my/models/my-model');
+  }
+  abstract getModel(shape: Shape): Sequential;
 }
