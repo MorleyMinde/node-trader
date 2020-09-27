@@ -4,6 +4,8 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 export class Sample<State, Action> {
   @PrimaryGeneratedColumn()
   id: number;
+  @Column({ default: () => `now()` })
+  created:Date;
   @Column({
     type: 'jsonb',
   })

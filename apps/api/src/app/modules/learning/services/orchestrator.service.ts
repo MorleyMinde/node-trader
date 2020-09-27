@@ -35,13 +35,14 @@ export class Orchestrator {
     if(!this.replaying){
         this.logger.debug('Called when the current second is 45');
         this.replaying = true;
+        await this.agent.initiate();
         await this.agent.replay();
         await this.agent.saveModel();
         this.replaying = false;
     }
   }
   async run() {
-    
+    await this.agent.initiate();
     let state = await this.tradingEnvironment.reset();
     let done = false;
     while (!done) {
@@ -51,6 +52,7 @@ export class Orchestrator {
       if(!results.done){
         await this.agent.remember(state, action, results.reward, results.state);
       }
+      //await this.agent.remember(state, action, results.reward, results.state);
       console.log(`Action:${action.side} Reward:${results.reward}`);
     }
     console.log('Done');

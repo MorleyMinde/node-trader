@@ -80,7 +80,7 @@ export class AondaBasicAgent extends AIAgent<OAndaMarketState, Action> {
   convertStateToTensor(state: OAndaMarketState):Tensor{
     return tensor(convertMarketStateToArray(state));
   }
-  async getModel(shape: Shape): Sequential{
+  getModel(shape: Shape): Sequential{
     let network = new Sequential();
     network.add(
       layers.dense({

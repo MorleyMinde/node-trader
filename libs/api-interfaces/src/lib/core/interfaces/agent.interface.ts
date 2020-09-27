@@ -1,5 +1,5 @@
 import * as tf from '@tensorflow/tfjs';
-import { Tensor, Sequential, Shape } from '@tensorflow/tfjs';
+import { Tensor, Sequential, Shape, LayersModel } from '@tensorflow/tfjs';
 import { IMemory } from './memory.interface';
 import { Rank } from '@tensorflow/tfjs-core';
 
@@ -34,7 +34,7 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
   _numStates: number;
   _numActions: number;
   //model: IModel;
-  _network: Sequential;
+  _network: LayersModel;
   constructor(private memory: IMemory<State, Action>) {}
 
   abstract convertTensorToAction(tensor: Tensor): Action;
@@ -73,11 +73,21 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
       .output;
     this._numActions = output.shape[1];
   }
+  async initiate(){
+    try{
+      this._network = await tf.loadLayersModel('file:///home/vincentminde/projects/personal/development/typescript/my/models/my-model/model.json');
+      this._network.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
+      this._prepareStates();
+      console.log('Starting Network');
+    }catch(e){
+      console.error(e);
+    }
+  }
   async replay() {
     const batch = await this.memory.sample(this.batchSize);
     if (!this._network) {
       let state = batch[0].state;
-      this._network = await this.getModel(
+      this._network = this.getModel(
         this.convertStateToTensor(state).shape
       );
       this._prepareStates();
