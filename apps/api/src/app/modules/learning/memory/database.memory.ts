@@ -14,8 +14,8 @@ export class DatabaseMemory<State, Action> implements IMemory<State, Action> {
   isFull(): boolean {
     return false;
   }
-  async addSample(sample: ISample<State, Action>): Promise<void> {
-    await this.samplesRepository.save(sample);
+  async addSample(sample: Sample<State, Action>): Promise<void> {
+    await this.samplesRepository.save(sample,{});
   }
   async sample(batchSize: any): Promise<ISample<State, Action>[]> {
     let batch = await this.samplesRepository.find({

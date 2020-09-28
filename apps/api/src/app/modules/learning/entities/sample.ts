@@ -1,7 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { ISample } from 'libs/api-interfaces/src/lib/core/interfaces/memory.interface';
 
 @Entity()
-export class Sample<State, Action> {
+export class Sample<State, Action> implements ISample<State, Action> {
   @PrimaryGeneratedColumn()
   id: number;
   @Column({ default: () => `now()` })
