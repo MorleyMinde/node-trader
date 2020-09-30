@@ -142,7 +142,7 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
   }
 
   async train(xBatch: Tensor<Rank>, yBatch: Tensor<Rank>) {
-    await this._network.fit(xBatch, yBatch);
+    await this._network.fit(xBatch, yBatch,{verbose:0,epochs:1000});
   }
   predict(stateTensor: Tensor): Tensor {
     if (!this._network) {
