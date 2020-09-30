@@ -8,7 +8,6 @@ export class LearningService implements OnGatewayConnection{
 
   client:Socket;
   constructor() {
-    console.log('Here');
   }
   handleConnection(client: any, ...args: any[]) {
     this.client = client;

@@ -26,12 +26,14 @@ interface IAgent<State, Action> {
     nextState: State
   ): Promise<void>;
 }
-
-export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
-  discountRate: 0.9;
+export interface IAction {
+  getIndex(): number;
+}
+export abstract class AIAgent<State, Action extends IAction> implements IAgent<State, Action> {
+  discountRate:number = 0.9;
   batchSize: 300;
   episodesToTrain: 1000;
-  _numStates: number;
+  _numStates: number = 25;
   _numActions: number;
   //model: IModel;
   _network: LayersModel;
@@ -68,7 +70,6 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
   }
   _prepareStates() {
     const input: any = this._network.layers[0].input;
-    this._numStates = input.shape[1];
     const output: any = this._network.layers[this._network.layers.length - 1]
       .output;
     this._numActions = output.shape[1];
@@ -83,8 +84,12 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
       console.error(e);
     }
   }
+  abstract getActionRank(action:Action):number;
   async replay() {
     const batch = await this.memory.sample(this.batchSize);
+    if(batch.length == 0){
+      return;
+    }
     if (!this._network) {
       let state = batch[0].state;
       this._network = this.getModel(
@@ -105,7 +110,9 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
       this.predict(this.convertStateToTensor(state))
     );
     // Predict the values of each action at each next state
-    const qsad = nextStates.map((nextState) => this.predict(nextState));
+    const qsad = nextStates.map((nextState)=>{
+      return this.predict(nextState);
+    });
 
     let x = new Array();
     let y = new Array();
@@ -113,9 +120,8 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
     // Update the states rewards with the discounted next states rewards
     batch.forEach(({ state, action, reward, nextState }, index) => {
       const currentQ = qsa[index];
-      //currentQ[action] = this.convertStateToTensor(nextState)
-      currentQ[action] = this.convertStateToTensor(nextState)
-        ? reward + this.discountRate * qsad[index].max().dataSync()
+      currentQ[this.getActionRank(action)] = this.convertStateToTensor(nextState)
+        ? reward + this.discountRate * qsad[index].max().dataSync()[0]
         : reward;
       x.push(this.convertStateToTensor(state).dataSync());
       y.push(currentQ.dataSync());
@@ -125,7 +131,6 @@ export abstract class AIAgent<State, Action> implements IAgent<State, Action> {
     qsa.forEach((state) => state.dispose());
     qsad.forEach((state) => state.dispose());
 
-    // Learn the Q(s, a) values given associated discounted rewards
     await this.train(
       tf.tensor2d(x, [x.length, this._numStates]),
       tf.tensor2d(y, [y.length, this._numActions])

@@ -46,6 +46,7 @@
     "@nestjs/websockets": "^7.4.4",
     "@nrwl/angular": "10.2.1",
     "@tensorflow/tfjs-core": "^2.4.0",
+    "@tensorflow/tfjs-node": "^2.4.0",
     "@tensorflow/tfjs-node-gpu": "^2.4.0",
     "angular-highcharts": "^10.0.1",
     "candlestick-convert": "^5.1.3",

@@ -4,7 +4,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   Granularity,
   OAndaMarketState,
-  Action,
+  OandaAction,
 } from 'libs/api-interfaces/src/lib/core/interfaces/trading.interface';
 import { DatabaseMemory } from '../memory/database.memory';
 import { Sample } from '../entities/sample';
@@ -19,11 +19,11 @@ export class Orchestrator {
     agent: AondaBasicAgent;
   constructor(
     @InjectRepository(Sample)
-    private samplesRepository: Repository<Sample<OAndaMarketState, Action>>
+    private samplesRepository: Repository<Sample<OAndaMarketState, OandaAction>>
   ) {
     this.tradingEnvironment = new OAndaTrader(Granularity.S5);
 
-    let memory: DatabaseMemory<OAndaMarketState, Action> = new DatabaseMemory(
+    let memory: DatabaseMemory<OAndaMarketState, OandaAction> = new DatabaseMemory(
       this.samplesRepository
     );
     this.agent = new AondaBasicAgent(memory);

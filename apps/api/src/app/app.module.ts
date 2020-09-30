@@ -12,11 +12,11 @@ import { ScheduleModule } from '@nestjs/schedule';
     LearningModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
+      host: 'database',
       port: 5432,
       username: 'postgres',
       password: 'postgres',
-      database: 'trade',
+      database: 'trader',
       entities: [Sample],
       synchronize: true,
     }),

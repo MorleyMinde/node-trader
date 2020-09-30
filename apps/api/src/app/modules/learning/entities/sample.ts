@@ -15,7 +15,9 @@ export class Sample<State, Action> implements ISample<State, Action> {
     type: 'jsonb',
   })
   action: Action;
-  @Column()
+  @Column({
+    type:'decimal'
+  })
   reward: number;
   @Column({
     type: 'jsonb',

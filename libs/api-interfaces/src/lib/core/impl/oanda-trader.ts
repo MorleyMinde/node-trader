@@ -1,5 +1,7 @@
 import * as fx from 'simple-fxtrade';
-import {  Action, Granularity, Direction, OAndaMarketState, MarketTickState } from '../interfaces/trading.interface';
+import {  Granularity, Direction, OAndaMarketState, MarketTickState, OandaAction } from '../interfaces/trading.interface';
+import { calculateReward } from '../utils/reward.util';
+import { IGym, StepResult, ActionSpace} from '../interfaces/gym.interface'
 
 
 function sleep(ms) {
@@ -7,7 +9,7 @@ function sleep(ms) {
     setTimeout(resolve, ms);
   });
 }
-export class OAndaTrader implements IGym<OAndaMarketState, Action> {
+export class OAndaTrader implements IGym<OAndaMarketState, OandaAction> {
   actionSpace: ActionSpace;
 
   //private _data: Promise<StepResult<TradeObservation>>;
@@ -15,7 +17,7 @@ export class OAndaTrader implements IGym<OAndaMarketState, Action> {
   //private _previousData: MarketTickState;
   private _previousState: OAndaMarketState;
   private _currentOrder: any;
-  private _currentAction: Action;
+  private _currentAction: OandaAction;
   constructor(private granularity:Granularity) {
     fx.configure({
       apiKey:
@@ -30,14 +32,14 @@ export class OAndaTrader implements IGym<OAndaMarketState, Action> {
     await this.removeAllTrades();
     return this.getEntireState();
   }
-  sameAsPreviousAction(action: Action) {
+  sameAsPreviousAction(action: OandaAction) {
     if (!this._currentAction || !action) {
       return false;
     }
     return this._currentAction.side == action.side;
   }
 
-  async step(action: Action): Promise<StepResult<OAndaMarketState>> {
+  async step(action: OandaAction): Promise<StepResult<OAndaMarketState>> {
     let currentData = await this._data;
     if (this._previousState) {
       let currentTime = new Date(currentData.time).getTime();
@@ -95,7 +97,7 @@ export class OAndaTrader implements IGym<OAndaMarketState, Action> {
     if(!previousState){
       return 0;
     }
-    return parseFloat(currentSate.account.withdrawalLimit) - parseFloat(previousState.account.withdrawalLimit);
+    return calculateReward(currentSate, previousState);
   }
   async removeAllTrades() {
     const { trades } = await fx.trades({ count: 10, instrument: 'EUR_USD' });
@@ -119,9 +121,11 @@ export class OAndaTrader implements IGym<OAndaMarketState, Action> {
   }
   async getEntireState():Promise<OAndaMarketState>{
     const { account } = await fx.summary();
+    const {positions} = await fx.positions();
     return {
       market: this._data,
-      account
+      account,
+      positions
     };
   }
 }

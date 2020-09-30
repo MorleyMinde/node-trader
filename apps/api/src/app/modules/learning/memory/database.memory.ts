@@ -15,17 +15,17 @@ export class DatabaseMemory<State, Action> implements IMemory<State, Action> {
     return false;
   }
   async addSample(sample: Sample<State, Action>): Promise<void> {
-    await this.samplesRepository.save(sample,{});
+    let isample:any = sample;
+    await this.samplesRepository.save(isample);
   }
-  async sample(batchSize: any): Promise<ISample<State, Action>[]> {
+  async sample(batchSize: number = 1000): Promise<ISample<State, Action>[]> {
     let batch = await this.samplesRepository.find({
       skip:1,
-      take:10000,
+      take: batchSize,
       order:{
         'created':'DESC',
       }
     });
-    console.log(batch.map((d)=>d.created));
     return batch;
   }
 }
