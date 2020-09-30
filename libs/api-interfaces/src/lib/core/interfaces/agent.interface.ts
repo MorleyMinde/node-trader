@@ -119,12 +119,16 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
 
     // Update the states rewards with the discounted next states rewards
     batch.forEach(({ state, action, reward, nextState }, index) => {
+      let actionReward:number = parseFloat(reward + "");
       const currentQ = qsa[index];
-      currentQ[this.getActionRank(action)] = this.convertStateToTensor(nextState)
-        ? reward + this.discountRate * qsad[index].max().dataSync()[0]
-        : reward;
+
+      let rewardDecay = this.convertStateToTensor(nextState)
+        ? actionReward + (this.discountRate * qsad[index].max().dataSync()[0])
+        : actionReward;
+      const currentQbuffer = tf.buffer(currentQ.shape, currentQ.dtype, currentQ.dataSync());
+      currentQbuffer.set(rewardDecay,0,this.getActionRank(action));
       x.push(this.convertStateToTensor(state).dataSync());
-      y.push(currentQ.dataSync());
+      y.push(currentQbuffer.toTensor().dataSync());
     });
 
     // Clean unused tensors
@@ -150,10 +154,10 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
       this._prepareStates();
     }
     const input: any = this._network.layers[0].input;
-    let results: any = this._network.predict(
+    let results:any = this._network.predict(
       stateTensor.reshape(input.shape.map((s) => (s ? s : 1)))
     );
-    return results.softmax();
+    return results;
   }
   async saveModel(): Promise<void> {
     await this._network.save('file:///home/app/models/my-model');

@@ -32,9 +32,7 @@ export class AondaBasicAgent extends AIAgent<OAndaMarketState, OandaAction> {
   }
 
   convertTensorToAction(tensor: Tensor): OandaAction {
-    const sig = tensor.sigmoid();
-    const probs: any = div(sig, sum(sig));
-    let action = actions[multinomial(probs, 1).dataSync()[0]];
+    let action = actions[tensor.dataSync().indexOf(tensor.max().dataSync()[0])];
     if (action) {
       return action;
     } else {
