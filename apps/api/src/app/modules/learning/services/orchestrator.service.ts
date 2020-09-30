@@ -30,7 +30,7 @@ export class Orchestrator {
     this.run();
   }
   replaying = false;
-  @Cron('* * * * * *')
+  @Cron('*/5 * * * *')
   async replay() {
     if(!this.replaying){
         this.logger.debug('Called when the current second is 45');
@@ -52,8 +52,6 @@ export class Orchestrator {
       if(!results.done){
         await this.agent.remember(state, action, results.reward, results.state);
       }
-      //await this.agent.remember(state, action, results.reward, results.state);
-      console.log(`Action:${action.side} Reward:${results.reward}`);
     }
     console.log('Done');
     
