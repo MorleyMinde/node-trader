@@ -72,7 +72,7 @@ services:
     environment:
       - NODE_ENV=production
       - MODE=trade
-      - INSTRUMENT=GBP_EUR
+      - INSTRUMENT=GBP_AUD
     command: npx ng serve api
     restart: always
     volumes:
@@ -114,7 +114,7 @@ services:
     environment:
       - NODE_ENV=production
       - MODE=trade
-      - INSTRUMENT=GBP_AUD
+      - INSTRUMENT=EUR_HUF
     command: npx ng serve api
     restart: always
     volumes:
@@ -156,7 +156,7 @@ services:
     environment:
       - NODE_ENV=production
       - MODE=trade
-      - INSTRUMENT=USD_KRW
+      - INSTRUMENT=USD_PLN
     command: npx ng serve api
     restart: always
     volumes:
@@ -177,7 +177,7 @@ services:
     environment:
       - NODE_ENV=production
       - MODE=trade
-      - INSTRUMENT=USD_BRL
+      - INSTRUMENT=CAD_CHF
     command: npx ng serve api
     restart: always
     volumes:
