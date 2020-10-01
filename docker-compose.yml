@@ -1,10 +1,31 @@
 version: '3.2'
 
 services:
+  trainer:
+    container_name: trainer
+    build: .
+    image: ussd/trader:1.0.0
+    working_dir: /home/app
+    environment:
+      - NODE_ENV=production
+      - MODE=train
+      - INSTRUMENT=EUR_USD
+    command: npx ng serve api
+    restart: always
+    volumes:
+      - type: bind
+        source: ./apps
+        target: /home/app/apps
+      - type: bind
+        source: ./libs
+        target: /home/app/libs
+      - type: bind
+        source: ./models
+        target: /home/app/models
   trader:
     container_name: trader
     build: .
-    image: vincentminde/trader:1.0.0
+    image: ussd/trader:1.0.0
     working_dir: /home/app
     environment:
       - NODE_ENV=production

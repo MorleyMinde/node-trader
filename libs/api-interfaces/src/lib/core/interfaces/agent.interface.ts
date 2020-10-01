@@ -3,6 +3,7 @@ import { Tensor, Sequential, Shape, LayersModel } from '@tensorflow/tfjs';
 import { IMemory } from './memory.interface';
 import { Rank } from '@tensorflow/tfjs-core';
 import { calculateReward } from '../utils/reward.util';
+import * as fs from 'fs';
 
 export interface IModel {
   numStates: number;
@@ -30,6 +31,7 @@ interface IAgent<State, Action> {
 export interface IAction {
   getIndex(): number;
 }
+const modelPath = '/home/app/models/my-model';
 export abstract class AIAgent<State, Action extends IAction> implements IAgent<State, Action> {
   discountRate:number = 0.9;
   batchSize: 300;
@@ -75,9 +77,20 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
       .output;
     this._numActions = output.shape[1];
   }
+  lastUpdate;
+  async checkUpdatedModel(){
+    if(fs.existsSync(`${modelPath}/weights.bin`)){
+      const stats = fs.statSync(`${modelPath}/weights.bin`);
+      if((new Date(this.lastUpdate)).getTime() !== (new Date(stats.mtime)).getTime()){
+        console.log('Reloading Model:', this.lastUpdate, stats.mtime);
+        await this.initiate();
+        this.lastUpdate = stats.mtime;
+      }
+    }
+  }
   async initiate(){
     try{
-      this._network = await tf.loadLayersModel('file:///home/app/models/my-model/model.json');
+      this._network = await tf.loadLayersModel(`file://${modelPath}/model.json`);
       this._network.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
       this._prepareStates();
       console.log('Starting Network');
@@ -121,6 +134,7 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
     // Update the states rewards with the discounted next states rewards
     batch.forEach(({ state, action, nextState }, index) => {
       let actionReward:number = calculateReward(state,nextState);
+      console.log(`Action: ${action} Reward${actionReward}`)
       const currentQ = qsa[index];
 
       let rewardDecay = this.convertStateToTensor(nextState)
@@ -128,18 +142,24 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
         : actionReward;
       const currentQbuffer = tf.buffer(currentQ.shape, currentQ.dtype, currentQ.dataSync());
       currentQbuffer.set(rewardDecay,0,this.getActionRank(action));
-      x.push(this.convertStateToTensor(state).dataSync());
-      y.push(currentQbuffer.toTensor().dataSync());
+      x.push(this.convertStateToTensor(state));
+      y.push(currentQbuffer.toTensor());
     });
 
     // Clean unused tensors
     qsa.forEach((state) => state.dispose());
     qsad.forEach((state) => state.dispose());
 
+    //console.log(x[0].shape, [x.length, ...x[0].shape]);
+    //console.log(y[0].shape, [y.length, ...y[0].shape], y[0].reshape([10]).arraySync())
     await this.train(
+      tf.tensor3d(x.map((d)=>d.arraySync()), [x.length, ...x[0].shape]),
+      tf.tensor2d(y.map((d)=>d.reshape([5]).arraySync()), [y.length, y[0].shape[1]])
+    );
+    /*await this.train(
       tf.tensor2d(x, [x.length, this._numStates]),
       tf.tensor2d(y, [y.length, this._numActions])
-    );
+    );*/
 
     x = [];
     y = [];
@@ -147,7 +167,7 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
   }
 
   async train(xBatch: Tensor<Rank>, yBatch: Tensor<Rank>) {
-    await this._network.fit(xBatch, yBatch,{verbose:0,epochs:1000});
+    await this._network.fit(xBatch, yBatch,{verbose:0,epochs:100});
   }
   predict(stateTensor: Tensor): Tensor {
     if (!this._network) {
@@ -161,7 +181,7 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
     return results;
   }
   async saveModel(): Promise<void> {
-    await this._network.save('file:///home/app/models/my-model');
+    await this._network.save(`file://${modelPath}`);
   }
   abstract getModel(shape: Shape): Sequential;
 }

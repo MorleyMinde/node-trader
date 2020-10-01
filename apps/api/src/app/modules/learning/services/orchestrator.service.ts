@@ -60,6 +60,7 @@ export class Orchestrator {
       action = await this.agent.act(nextState);
       currentState = nextState;
       this.tradingEnvironment.act(action);
+      await this.agent.checkUpdatedModel();
     });
     /*while (!done) {
       let action = await this.agent.act(state);

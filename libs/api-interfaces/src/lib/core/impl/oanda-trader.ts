@@ -90,11 +90,10 @@ export class OAndaTrader implements IGym<OAndaMarketState, OandaAction> {
     }, 5000);
   }
   async act(action: OandaAction){
-    console.log('Action:', action);
     try{
       if(action.side == Direction.BUY){
         if(action.units > 0){
-          console.log(`Buying: ${action.units}`);
+          //console.log(`Buying: ${action.units}`);
           await fx.orders.create({
             order: {
               units: Math.floor(action.units),
@@ -107,7 +106,7 @@ export class OAndaTrader implements IGym<OAndaMarketState, OandaAction> {
         }
       }else if(action.side == Direction.SELL){
         if(action.units > 0){
-          console.log(`Selling: ${action.units}`);
+          //console.log(`Selling: ${action.units}`);
           await fx.orders.create({
             order: {
               units: Math.floor(-action.units),
@@ -119,13 +118,13 @@ export class OAndaTrader implements IGym<OAndaMarketState, OandaAction> {
           });
         }
       }else if(action.side == Direction.CBUY){
-        console.log('Closing Buy Position');
+        //console.log('Closing Buy Position');
         await fx.positions.close({ 
           id:this.instrument,
           longUnits : 'ALL',
         });
       }else if(action.side == Direction.CSELL){
-        console.log('Closing Sell Position');
+        //console.log('Closing Sell Position');
         await fx.positions.close({ 
           id:this.instrument,
           shortUnits : 'ALL',
