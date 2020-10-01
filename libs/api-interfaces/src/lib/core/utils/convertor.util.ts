@@ -1,6 +1,6 @@
-import { OAndaMarketState } from '../interfaces/trading.interface';
+import { OAndaMarketState, Position } from '../interfaces/trading.interface';
 
-export const convertMarketStateToArray = (state: OAndaMarketState) =>{
+/*export const convertMarketStateToArray = (state: OAndaMarketState) =>{
     let array = new Array(24);
     let date = new Date(state.market.time);
     let beginingOfDay = new Date(date.getFullYear(),date.getMonth(),date.getDate(),0,0,0,0);
@@ -29,5 +29,45 @@ export const convertMarketStateToArray = (state: OAndaMarketState) =>{
     array[22] = parseFloat(state.account.marginCloseoutPercent);
     array[23] = parseFloat(state.account.withdrawalLimit)/100;
     array[24] = parseFloat(state.account.marginCallPercent);
+    return array;
+}*/
+
+export const convertMarketStateToArray = (state: OAndaMarketState) =>{
+    let position:Position;
+    state.positions.filter((position)=>position.instrument == state.instrument)
+    .forEach((pos)=>{
+        position = pos;
+    })
+    let array = state.market.map((candle,index)=>[
+        parseFloat(candle.mid.o),                           // Open
+        parseFloat(candle.mid.h),                           // High
+        parseFloat(candle.mid.l),                           // Low
+        parseFloat(candle.mid.c),                           // Close
+        candle.volume,                                      //Volume
+        position?parseFloat(position.long.units):0,                     // Long Units
+        position?position.long.averagePrice?parseFloat(position.long.averagePrice):0:0 ,             // Long Average Price
+        position?parseFloat(position.long.financing):0,                        // Long PL
+        position?parseFloat(position.long.pl):0,                        // Long PL
+        position?parseFloat(position.long.unrealizedPL):0,              // Long UnlrealizedPL
+        position?parseFloat(position.long.resettablePL):0,              // Long Resettable PL
+        position?parseFloat(position.long.dividendAdjustment):0,        // Long dividendAdjustment
+        position?parseFloat(position.long.guaranteedExecutionFees):0,   // Long guaranteedExecutionFees
+        position?parseFloat(position.short.units):0,                     // Short Units
+        position?position.short.averagePrice?parseFloat(position.short.averagePrice):0:0 ,             // Short Average Price
+        position?parseFloat(position.short.financing):0 ,             // Short Average Price
+        position?parseFloat(position.short.pl):0,                        // Short PL
+        position?parseFloat(position.short.unrealizedPL):0,              // Short UnlrealizedPL
+        position?parseFloat(position.short.resettablePL):0,              // Short Resettable PL
+        position?parseFloat(position.short.dividendAdjustment):0,        // Short dividendAdjustment
+        position?parseFloat(position.short.guaranteedExecutionFees):0,   // Short guaranteedExecutionFees
+        position?parseFloat(position.marginUsed):0,                     // All Units
+        position?parseFloat(position.financing):0 ,             // All Financing
+        position?parseFloat(position.commission):0 ,             // All Commission
+        position?parseFloat(position.pl):0,                        // All PL
+        position?parseFloat(position.unrealizedPL):0,              // All UnlrealizedPL
+        position?parseFloat(position.resettablePL):0,              // All Resettable PL
+        position?parseFloat(position.dividendAdjustment):0,        // All dividendAdjustment
+        position?parseFloat(position.guaranteedExecutionFees):0,   // All guaranteedExecutionFees
+    ]);
     return array;
 }

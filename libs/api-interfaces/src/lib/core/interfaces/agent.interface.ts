@@ -2,6 +2,7 @@ import * as tf from '@tensorflow/tfjs';
 import { Tensor, Sequential, Shape, LayersModel } from '@tensorflow/tfjs';
 import { IMemory } from './memory.interface';
 import { Rank } from '@tensorflow/tfjs-core';
+import { calculateReward } from '../utils/reward.util';
 
 export interface IModel {
   numStates: number;
@@ -118,8 +119,8 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
     let y = new Array();
 
     // Update the states rewards with the discounted next states rewards
-    batch.forEach(({ state, action, reward, nextState }, index) => {
-      let actionReward:number = parseFloat(reward + "");
+    batch.forEach(({ state, action, nextState }, index) => {
+      let actionReward:number = calculateReward(state,nextState);
       const currentQ = qsa[index];
 
       let rewardDecay = this.convertStateToTensor(nextState)

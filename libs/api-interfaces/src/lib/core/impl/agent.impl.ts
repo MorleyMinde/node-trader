@@ -18,24 +18,32 @@ import { Memory } from './memory.impl';
 import { convertMarketStateToArray } from '../utils/convertor.util';
 import { IMemory, ISample } from '../interfaces/memory.interface';
 
-const actions: OandaAction[] = [
-  new OandaAction('EUR_USD', 100, Direction.WAIT),
-  new OandaAction('EUR_USD', 100, Direction.BUY),
-  new OandaAction('EUR_USD', 100, Direction.SELL),
-  new OandaAction('EUR_USD', 100, Direction.CLOSE),
-];
-
+/*const actions: OandaAction[] = [
+  new OandaAction(this.instrument, 100, Direction.WAIT),
+  new OandaAction(this.instrument, 100, Direction.BUY),
+  new OandaAction(this.instrument, 100, Direction.SELL),
+  new OandaAction(this.instrument, 100, Direction.CBUY),
+  new OandaAction(this.instrument, 100, Direction.CSELL),
+];*/
 export class AondaBasicAgent extends AIAgent<OAndaMarketState, OandaAction> {
   batchSize: 300;
-  constructor(memory: IMemory<OAndaMarketState, OandaAction>) {
+  constructor(private instrument:string, memory: IMemory<OAndaMarketState, OandaAction>) {
     super(memory);
   }
 
   convertTensorToAction(tensor: Tensor): OandaAction {
-    let action = actions[tensor.dataSync().indexOf(tensor.max().dataSync()[0])];
+    /*let maximumDecision = tensor.max().dataSync()[0];
+    let action = actions[tensor.dataSync().indexOf(maximumDecision)];
+    action.units = maximumDecision;*/
+    let actions = Object.keys(Direction).filter((direction)=>!isNaN(parseInt(direction))).map((direction)=>{
+      return new OandaAction(100, parseInt(direction));
+    })
+    let randomAction = Math.floor(Math.random() * Object.keys(Direction).length/2);
+    let action = actions[randomAction];
     if (action) {
       return action;
     } else {
+      console.error('randomAction:',randomAction);
       throw Error('Action undefined');
     }
   }
@@ -90,7 +98,8 @@ export class AondaBasicAgent extends AIAgent<OAndaMarketState, OandaAction> {
         useBias: true
       })
     );
-    network.add(layers.dense({ units: 4 }));
+    network.add(layers.flatten());
+    network.add(layers.dense({ units: Object.keys(Direction).length }));
 
     network.summary();
     network.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
