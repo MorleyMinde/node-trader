@@ -4,10 +4,12 @@ services:
   trader:
     container_name: trader
     build: .
-    image: vincentminde/trader:1.0.0
+    image: ussd/trader:1.0.0
     working_dir: /home/app
     environment:
       - NODE_ENV=production
+      - MODE=trade
+      - INSTRUMENT=EUR_USD
     command: npx ng serve api
     #command: ls
     restart: always

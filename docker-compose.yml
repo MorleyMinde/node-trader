@@ -22,17 +22,205 @@ services:
       - type: bind
         source: ./models
         target: /home/app/models
-  trader:
-    container_name: trader
+  trader1:
+    container_name: trader1
     build: .
     image: ussd/trader:1.0.0
     working_dir: /home/app
     environment:
       - NODE_ENV=production
       - MODE=trade
-      - INSTRUMENT=EUR_USD
+      - INSTRUMENT=AUD_JPY
     command: npx ng serve api
-    #command: ls
+    restart: always
+    volumes:
+      - type: bind
+        source: ./apps
+        target: /home/app/apps
+      - type: bind
+        source: ./libs
+        target: /home/app/libs
+      - type: bind
+        source: ./models
+        target: /home/app/models
+  trader2:
+    container_name: trader2
+    build: .
+    image: ussd/trader:1.0.0
+    working_dir: /home/app
+    environment:
+      - NODE_ENV=production
+      - MODE=trade
+      - INSTRUMENT=NZD_JPY
+    command: npx ng serve api
+    restart: always
+    volumes:
+      - type: bind
+        source: ./apps
+        target: /home/app/apps
+      - type: bind
+        source: ./libs
+        target: /home/app/libs
+      - type: bind
+        source: ./models
+        target: /home/app/models
+  trader3:
+    container_name: trader3
+    build: .
+    image: ussd/trader:1.0.0
+    working_dir: /home/app
+    environment:
+      - NODE_ENV=production
+      - MODE=trade
+      - INSTRUMENT=GBP_EUR
+    command: npx ng serve api
+    restart: always
+    volumes:
+      - type: bind
+        source: ./apps
+        target: /home/app/apps
+      - type: bind
+        source: ./libs
+        target: /home/app/libs
+      - type: bind
+        source: ./models
+        target: /home/app/models
+  trader4:
+    container_name: trader4
+    build: .
+    image: ussd/trader:1.0.0
+    working_dir: /home/app
+    environment:
+      - NODE_ENV=production
+      - MODE=trade
+      - INSTRUMENT=CAD_JPY
+    command: npx ng serve api
+    restart: always
+    volumes:
+      - type: bind
+        source: ./apps
+        target: /home/app/apps
+      - type: bind
+        source: ./libs
+        target: /home/app/libs
+      - type: bind
+        source: ./models
+        target: /home/app/models
+  trader5:
+    container_name: trader5
+    build: .
+    image: ussd/trader:1.0.0
+    working_dir: /home/app
+    environment:
+      - NODE_ENV=production
+      - MODE=trade
+      - INSTRUMENT=GBP_AUD
+    command: npx ng serve api
+    restart: always
+    volumes:
+      - type: bind
+        source: ./apps
+        target: /home/app/apps
+      - type: bind
+        source: ./libs
+        target: /home/app/libs
+      - type: bind
+        source: ./models
+        target: /home/app/models
+  trader6:
+    container_name: trader6
+    build: .
+    image: ussd/trader:1.0.0
+    working_dir: /home/app
+    environment:
+      - NODE_ENV=production
+      - MODE=trade
+      - INSTRUMENT=USD_ZAR
+    command: npx ng serve api
+    restart: always
+    volumes:
+      - type: bind
+        source: ./apps
+        target: /home/app/apps
+      - type: bind
+        source: ./libs
+        target: /home/app/libs
+      - type: bind
+        source: ./models
+        target: /home/app/models
+  trader7:
+    container_name: trader7
+    build: .
+    image: ussd/trader:1.0.0
+    working_dir: /home/app
+    environment:
+      - NODE_ENV=production
+      - MODE=trade
+      - INSTRUMENT=USD_KRW
+    command: npx ng serve api
+    restart: always
+    volumes:
+      - type: bind
+        source: ./apps
+        target: /home/app/apps
+      - type: bind
+        source: ./libs
+        target: /home/app/libs
+      - type: bind
+        source: ./models
+        target: /home/app/models
+  trader8:
+    container_name: trader8
+    build: .
+    image: ussd/trader:1.0.0
+    working_dir: /home/app
+    environment:
+      - NODE_ENV=production
+      - MODE=trade
+      - INSTRUMENT=USD_BRL
+    command: npx ng serve api
+    restart: always
+    volumes:
+      - type: bind
+        source: ./apps
+        target: /home/app/apps
+      - type: bind
+        source: ./libs
+        target: /home/app/libs
+      - type: bind
+        source: ./models
+        target: /home/app/models
+  trader9:
+    container_name: trader9
+    build: .
+    image: ussd/trader:1.0.0
+    working_dir: /home/app
+    environment:
+      - NODE_ENV=production
+      - MODE=trade
+      - INSTRUMENT=USD_TRY
+    command: npx ng serve api
+    restart: always
+    volumes:
+      - type: bind
+        source: ./apps
+        target: /home/app/apps
+      - type: bind
+        source: ./libs
+        target: /home/app/libs
+      - type: bind
+        source: ./models
+        target: /home/app/models
+  trader10:
+    container_name: trader10
+    build: .
+    image: ussd/trader:1.0.0
+    working_dir: /home/app
+    environment:
+      - NODE_ENV=production
+      - MODE=trade
+      - INSTRUMENT=USD_MXN
+    command: npx ng serve api
     restart: always
     volumes:
       - type: bind
