@@ -125,6 +125,7 @@ export enum Direction {
   SELL = 2,
   CBUY = 3,
   CSELL = 4,
+  CLOSE = 5,
 }
 export class OandaAction implements IAction{
   constructor(public units:number, public side:Direction){};

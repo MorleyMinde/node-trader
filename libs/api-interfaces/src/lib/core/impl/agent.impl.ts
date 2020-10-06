@@ -40,10 +40,6 @@ export class AondaBasicAgent extends AIAgent<OAndaMarketState, OandaAction> {
     let action = actions[tensor.dataSync().indexOf(maximumDecision)];
     action.units = maximumDecision;
     console.log('Action:',action);
-    //throw Error()
-    /*
-    let randomAction = Math.floor(Math.random() * Object.keys(Direction).length/2);
-    let action = actions[randomAction];*/
     if (action) {
       return action;
     } else {
@@ -102,8 +98,7 @@ export class AondaBasicAgent extends AIAgent<OAndaMarketState, OandaAction> {
       })
     );
     network.add(layers.flatten());
-    network.add(layers.dense({ units: Object.keys(Direction).length / 2 }));
-    //network.add(layers.reshape({targetShape:[null, Object.keys(Direction).length / 2]}));
+    network.add(layers.dense({ units: Object.keys(Direction).filter((direction)=>!isNaN(parseInt(direction))).length }));
 
     network.summary();
     network.compile({ optimizer: 'adam', loss: 'meanSquaredError' });

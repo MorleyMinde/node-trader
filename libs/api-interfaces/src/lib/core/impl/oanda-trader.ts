@@ -129,6 +129,9 @@ export class OAndaTrader implements IGym<OAndaMarketState, OandaAction> {
           id:this.instrument,
           shortUnits : 'ALL',
         });
+      }else if(action.side == Direction.CLOSE){
+        //console.log('Closing Sell Position');
+        await this.removeAllPositions();
       }
     }catch(e){
       if(e.errorCode && e.errorCode == 'CLOSEOUT_POSITION_DOESNT_EXIST'){
