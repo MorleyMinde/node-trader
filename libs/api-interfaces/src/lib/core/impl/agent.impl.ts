@@ -36,6 +36,7 @@ export class AondaBasicAgent extends AIAgent<OAndaMarketState, OandaAction> {
       return new OandaAction(100, parseInt(direction));
     })
     let maximumDecision:number = tensor.max().dataSync()[0];
+    console.log(maximumDecision,tensor.dataSync(),actions);
     let action = actions[tensor.dataSync().indexOf(maximumDecision)];
     action.units = maximumDecision;
     console.log('Action:',action);
