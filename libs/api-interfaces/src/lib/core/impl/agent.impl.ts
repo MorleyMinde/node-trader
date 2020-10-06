@@ -35,10 +35,10 @@ export class AondaBasicAgent extends AIAgent<OAndaMarketState, OandaAction> {
     let actions = Object.keys(Direction).filter((direction)=>!isNaN(parseInt(direction))).map((direction)=>{
       return new OandaAction(100, parseInt(direction));
     })
-    console.log('Array:',tensor.max().dataSync());
     let maximumDecision:number = tensor.max().dataSync()[0];
     let action = actions[tensor.dataSync().indexOf(maximumDecision)];
     action.units = maximumDecision;
+    console.log('Action:',action);
     //throw Error()
     /*
     let randomAction = Math.floor(Math.random() * Object.keys(Direction).length/2);
