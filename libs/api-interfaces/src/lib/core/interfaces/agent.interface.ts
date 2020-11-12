@@ -134,7 +134,6 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
     // Update the states rewards with the discounted next states rewards
     batch.forEach(({ state, action, nextState }, index) => {
       let actionReward:number = calculateReward(state,nextState);
-      console.log(`Action: ${action} Reward${actionReward}`)
       const currentQ = qsa[index];
 
       let rewardDecay = this.convertStateToTensor(nextState)
@@ -151,10 +150,10 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
     qsad.forEach((state) => state.dispose());
 
     //console.log(x[0].shape, [x.length, ...x[0].shape]);
-    //console.log(y[0].shape, [y.length, ...y[0].shape], y[0].reshape([10]).arraySync())
+    console.log(y[0].shape)
     await this.train(
       tf.tensor3d(x.map((d)=>d.arraySync()), [x.length, ...x[0].shape]),
-      tf.tensor2d(y.map((d)=>d.reshape([5]).arraySync()), [y.length, y[0].shape[1]])
+      tf.tensor2d(y.map((d)=>d.reshape([6]).arraySync()), [y.length, y[0].shape[1]])
     );
     /*await this.train(
       tf.tensor2d(x, [x.length, this._numStates]),
@@ -167,7 +166,7 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
   }
 
   async train(xBatch: Tensor<Rank>, yBatch: Tensor<Rank>) {
-    await this._network.fit(xBatch, yBatch,{verbose:0,epochs:100});
+    await this._network.fit(xBatch, yBatch,{verbose:0,epochs:1});
   }
   predict(stateTensor: Tensor): Tensor {
     if (!this._network) {

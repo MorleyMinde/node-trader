@@ -98,7 +98,10 @@ export class AondaBasicAgent extends AIAgent<OAndaMarketState, OandaAction> {
       })
     );
     network.add(layers.flatten());
-    network.add(layers.dense({ units: Object.keys(Direction).filter((direction)=>!isNaN(parseInt(direction))).length }));
+    network.add(layers.dense({ 
+      units: Object.keys(Direction).filter((direction)=>!isNaN(parseInt(direction))).length,
+      activation: 'softmax'
+    }));
 
     network.summary();
     network.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
