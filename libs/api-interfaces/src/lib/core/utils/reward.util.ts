@@ -8,10 +8,13 @@ export const calculateReward = (currentSate:OAndaMarketState|any, nextState:OAnd
         currentPositions.forEach((position)=>{
             currentReward += parseFloat(position.unrealizedPL)
         });
+
         let nextReward = 0;
         nextPositions.forEach((position)=>{
             nextReward += parseFloat(position.unrealizedPL)
         });
+        //console.log(currentPositions)
+        //console.log('Reward:',nextReward - currentReward);
         return nextReward - currentReward;
     }
     if(currentPositions.length > 0){

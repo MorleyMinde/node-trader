@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.both.yml
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: trainer
+  name: trainer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: trainer
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.both.yml
+        kompose.version: 1.22.0 (955b78124)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: trainer
+    spec:
+      containers:
+        - args:
+            - npx
+            - ng
+            - serve
+            - api
+          env:
+            - name: INSTRUMENT
+              value: EUR_USD
+            - name: MODE
+              value: train
+            - name: NODE_ENV
+              value: production
+          image: ussd/trader:1.0.0
+          name: trainer
+          resources: {}
+          volumeMounts:
+            - mountPath: /home/app/apps
+              name: trainer-claim0
+            - mountPath: /home/app/libs
+              name: trainer-claim1
+            - mountPath: /home/app/models
+              name: trainer-claim2
+          workingDir: /home/app
+      restartPolicy: Always
+      volumes:
+        - name: trainer-claim0
+          persistentVolumeClaim:
+            claimName: trainer-claim0
+        - name: trainer-claim1
+          persistentVolumeClaim:
+            claimName: trainer-claim1
+        - name: trainer-claim2
+          persistentVolumeClaim:
+            claimName: trainer-claim2
+status: {}

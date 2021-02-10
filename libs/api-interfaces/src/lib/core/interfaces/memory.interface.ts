@@ -1,4 +1,5 @@
 export interface ISample<State,Action>{
+    instrument:string;
     state: State;
     action: Action;
     reward: number;

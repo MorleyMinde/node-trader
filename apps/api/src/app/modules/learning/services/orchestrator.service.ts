@@ -26,7 +26,7 @@ export class Orchestrator {
     );
     this.agent = new AondaBasicAgent(process.env.INSTRUMENT, memory);
     if(process.env.MODE == 'train'){
-      console.log('Start Training');
+      //console.log('Start Training');
       this.replay();
     }else if(process.env.MODE == 'trade'){
       console.log('Start Trading');
@@ -55,7 +55,7 @@ export class Orchestrator {
     this.tradingEnvironment.onMarketChange(async (nextState)=>{
       
       if(currentState){
-        this.agent.remember(currentState, action, this.tradingEnvironment.calculateReward(currentState, nextState), nextState);
+        this.agent.remember(process.env.INSTRUMENT,currentState, action, this.tradingEnvironment.calculateReward(currentState, nextState), nextState);
       }
       action = await this.agent.act(nextState);
       currentState = nextState;

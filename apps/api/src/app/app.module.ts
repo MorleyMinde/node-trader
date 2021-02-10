@@ -7,12 +7,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Sample } from './modules/learning/entities/sample';
 import { ScheduleModule } from '@nestjs/schedule';
 
+console.log(process.env);
+
 @Module({
   imports: [
     LearningModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'database',
+      host: 'trader-db',
       port: 5432,
       username: 'postgres',
       password: 'postgres',

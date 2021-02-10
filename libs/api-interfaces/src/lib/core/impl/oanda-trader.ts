@@ -135,9 +135,9 @@ export class OAndaTrader implements IGym<OAndaMarketState, OandaAction> {
       }
     }catch(e){
       if(e.errorCode && e.errorCode == 'CLOSEOUT_POSITION_DOESNT_EXIST'){
-        console.log(e.errorCode);
+        console.log('Error Code:',e.errorCode);
       }else{
-        console.error(e);
+        console.error('Error No Code:',e);
       }
       //console.error(e);
     }

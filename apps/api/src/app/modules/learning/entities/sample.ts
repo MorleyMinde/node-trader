@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 import { ISample } from 'libs/api-interfaces/src/lib/core/interfaces/memory.interface';
 
 @Entity()
@@ -7,6 +7,10 @@ export class Sample<State, Action> implements ISample<State, Action> {
   id: number;
   @Column({ default: () => `now()` })
   created:Date;
+  
+  //@Index()
+  @Column({nullable:false})
+  instrument:string;
   @Column({
     type: 'jsonb',
   })

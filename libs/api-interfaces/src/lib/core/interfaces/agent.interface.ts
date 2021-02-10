@@ -22,6 +22,7 @@ interface IAgent<State, Action> {
   episodesToTrain: number;
   act(state: State): Promise<Action>;
   remember(
+    instrument:string,
     state: State,
     action: Action,
     reward: number,
@@ -56,12 +57,14 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
     return action;
   }
   async remember(
+    instrument:string,
     state: State,
     action: Action,
     reward: number,
     nextState: State
   ): Promise<void> {
     this.memory.addSample({
+      instrument:instrument,
       state: state,
       action: action,
       reward: reward,
@@ -93,7 +96,6 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
       this._network = await tf.loadLayersModel(`file://${modelPath}/model.json`);
       this._network.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
       this._prepareStates();
-      console.log('Starting Network');
     }catch(e){
       console.error(e);
     }
@@ -111,7 +113,6 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
       );
       this._prepareStates();
     }
-    console.log('Started Training');
     // Sample from memory
     const states = batch.map(({ state }) => state);
     const nextStates = batch.map(({ nextState }) =>
@@ -149,8 +150,6 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
     qsa.forEach((state) => state.dispose());
     qsad.forEach((state) => state.dispose());
 
-    //console.log(x[0].shape, [x.length, ...x[0].shape]);
-    console.log(y[0].shape)
     await this.train(
       tf.tensor3d(x.map((d)=>d.arraySync()), [x.length, ...x[0].shape]),
       tf.tensor2d(y.map((d)=>d.reshape([6]).arraySync()), [y.length, y[0].shape[1]])
@@ -162,7 +161,6 @@ export abstract class AIAgent<State, Action extends IAction> implements IAgent<S
 
     x = [];
     y = [];
-    console.log('Finished Replaying');
   }
 
   async train(xBatch: Tensor<Rank>, yBatch: Tensor<Rank>) {

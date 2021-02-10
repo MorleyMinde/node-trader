@@ -20,7 +20,7 @@ export class DatabaseMemory<State, Action> implements IMemory<State, Action> {
   }
   async sample(batchSize: number = 1000): Promise<ISample<State, Action>[]> {
     let count = await this.samplesRepository.count();
-    console.log('Picking');
+    //console.log('Picking');
     let batch = await this.samplesRepository.find({
       skip:Math.floor(Math.random() * count),
       take: batchSize,
@@ -28,7 +28,7 @@ export class DatabaseMemory<State, Action> implements IMemory<State, Action> {
         'created':'DESC',
       }
     });
-    console.log(batch.length);
+    //console.log(batch.length);
     return batch;
   }
 }
