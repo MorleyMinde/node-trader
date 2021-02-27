@@ -60,7 +60,7 @@ export const convertMarketStateToArray = (state: OAndaMarketState) =>{
         position?parseFloat(position.short.resettablePL):0,              // Short Resettable PL
         position?parseFloat(position.short.dividendAdjustment):0,        // Short dividendAdjustment
         position?parseFloat(position.short.guaranteedExecutionFees):0,   // Short guaranteedExecutionFees
-        position?parseFloat(position.marginUsed):0,                     // All Units
+        position?position.marginUsed?parseFloat(position.marginUsed):0:0,                    // All Units
         position?parseFloat(position.financing):0 ,             // All Financing
         position?parseFloat(position.commission):0 ,             // All Commission
         position?parseFloat(position.pl):0,                        // All PL
